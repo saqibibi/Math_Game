@@ -5,20 +5,26 @@
 const screens = document.querySelectorAll(".screen");
 const navButtons = document.querySelectorAll(".bottom-item");
 
-function showScreen(id, addToHistory = true) {
+let currentScreen = "homeScreen";
 
-    screens.forEach(screen => {
-        screen.classList.remove("active");
-    });
+
+function showScreen(id, addToHistory = true) {
 
     const targetScreen = document.getElementById(id);
 
     if (!targetScreen) return;
 
+
+    screens.forEach(screen => {
+        screen.classList.remove("active");
+    });
+
+
     targetScreen.classList.add("active");
 
+    currentScreen = id;
 
-    // Update bottom navigation
+
     navButtons.forEach(button => {
 
         button.classList.toggle(
@@ -29,21 +35,52 @@ function showScreen(id, addToHistory = true) {
     });
 
 
-    // Save the screen in browser history
     if (addToHistory) {
 
-        history.pushState(
-            { screen: id },
-            "",
-            "#" + id
-        );
+        const currentState =
+            history.state?.screen;
+
+
+        if (currentState !== id) {
+
+            history.pushState(
+                { screen: id },
+                "",
+                "#" + id
+            );
+
+        }
 
     }
 
 
     window.scrollTo(0, 0);
+
 }
 
+
+// Initial history state
+
+history.replaceState(
+    { screen: "homeScreen" },
+    "",
+    "#homeScreen"
+);
+
+
+// Browser / phone back gesture
+
+window.addEventListener("popstate", event => {
+
+    const screenId =
+        event.state?.screen || "homeScreen";
+
+    showScreen(screenId, false);
+
+});
+
+
+// Bottom navigation
 
 navButtons.forEach(button => {
 
@@ -55,6 +92,8 @@ navButtons.forEach(button => {
 
 });
 
+
+// Standard back buttons
 
 document.querySelectorAll(".back-btn[data-back]")
     .forEach(button => {
@@ -68,19 +107,18 @@ document.querySelectorAll(".back-btn[data-back]")
     });
 
 
-document.getElementById("goPractice").onclick = () => {
-    showScreen("modeScreen");
-};
+// Home buttons
+
+document.getElementById("goPractice")
+    .onclick = () => showScreen("modeScreen");
 
 
-document.getElementById("goLearn").onclick = () => {
-    showScreen("learnScreen");
-};
+document.getElementById("goLearn")
+    .onclick = () => showScreen("learnScreen");
 
 
-document.getElementById("quickPlay").onclick = () => {
-    showScreen("modeScreen");
-};
+document.getElementById("quickPlay")
+    .onclick = () => showScreen("modeScreen");
 
 
 // ========================================
@@ -99,28 +137,65 @@ function updateStats() {
 
     const currentXP = totalXP % 100;
 
-    document.getElementById("totalXP").textContent = totalXP;
 
-    document.getElementById("bestScore").textContent = bestScore;
+    document.getElementById("totalXP").textContent =
+        totalXP;
 
-    document.getElementById("streakDisplay").textContent = streak;
+    document.getElementById("bestScore").textContent =
+        bestScore;
 
-    document.getElementById("levelNumber").textContent = level;
+    document.getElementById("streakDisplay").textContent =
+        streak;
+
+    document.getElementById("levelNumber").textContent =
+        level;
 
     document.getElementById("xpText").textContent =
         `${currentXP} / 100`;
 
     document.getElementById("xpFill").style.width =
         `${currentXP}%`;
+
 }
 
 
 // ========================================
-// CALCULATION MODE SELECTION
+// HELPER
+// ========================================
+
+const circumference = 264;
+
+
+function random(min, max) {
+
+    return Math.floor(
+        Math.random() * (max - min + 1)
+    ) + min;
+
+}
+
+
+// ========================================
+// CALCULATION MODE
 // ========================================
 
 let selectedMode = "addition";
 let selectedTime = 7;
+
+const totalQuestions = 10;
+
+let questionIndex = 0;
+let correct = 0;
+let wrong = 0;
+let combo = 0;
+
+let correctAnswer = 0;
+let typedAnswer = "";
+
+let timer = null;
+let timeLeft = 0;
+
+let answerLocked = false;
 
 
 const modeButtons =
@@ -135,14 +210,17 @@ modeButtons.forEach(button => {
 
             btn.classList.remove("active-mode");
 
-            btn.querySelector(".mode-select").textContent = "";
+            btn.querySelector(".mode-select")
+                .textContent = "";
 
         });
 
 
         button.classList.add("active-mode");
 
-        button.querySelector(".mode-select").textContent = "✓";
+        button.querySelector(".mode-select")
+            .textContent = "✓";
+
 
         selectedMode = button.dataset.mode;
 
@@ -151,12 +229,15 @@ modeButtons.forEach(button => {
 });
 
 
+// Time selection
+
 document.querySelectorAll(".time-buttons button")
     .forEach(button => {
 
         button.addEventListener("click", () => {
 
-            document.querySelectorAll(".time-buttons button")
+            document
+                .querySelectorAll(".time-buttons button")
                 .forEach(btn => {
 
                     btn.classList.remove("selected-time");
@@ -166,9 +247,13 @@ document.querySelectorAll(".time-buttons button")
 
             button.classList.add("selected-time");
 
-            selectedTime = Number(button.dataset.time);
 
-            document.getElementById("timeDisplay").textContent =
+            selectedTime =
+                Number(button.dataset.time);
+
+
+            document.getElementById("timeDisplay")
+                .textContent =
                 `${selectedTime} SEC`;
 
         });
@@ -179,33 +264,6 @@ document.querySelectorAll(".time-buttons button")
 // ========================================
 // CALCULATION GAME
 // ========================================
-
-let questionIndex = 0;
-const totalQuestions = 10;
-
-let correct = 0;
-let wrong = 0;
-let combo = 0;
-
-let correctAnswer = 0;
-let typedAnswer = "";
-
-let timer;
-let timeLeft;
-
-let answerLocked = false;
-
-const circumference = 264;
-
-
-function random(min, max) {
-
-    return Math.floor(
-        Math.random() * (max - min + 1)
-    ) + min;
-
-}
-
 
 function getOperation() {
 
@@ -230,6 +288,7 @@ function getOperation() {
 
     const operations = maps[selectedMode];
 
+
     return operations[
         random(0, operations.length - 1)
     ];
@@ -239,10 +298,24 @@ function getOperation() {
 
 function startGame() {
 
+    clearInterval(timer);
+
+
     questionIndex = 0;
     correct = 0;
     wrong = 0;
     combo = 0;
+
+    typedAnswer = "";
+    answerLocked = false;
+
+
+    document.getElementById("questionTotal")
+        .textContent =
+        totalQuestions;
+
+
+    updateCombo();
 
     showScreen("gameScreen");
 
@@ -259,27 +332,27 @@ function nextQuestion() {
 
     clearInterval(timer);
 
-    typedAnswer = "";
 
+    typedAnswer = "";
     answerLocked = false;
 
-    document.getElementById("answerText").textContent = "?";
 
-    document.getElementById("feedbackMessage").textContent = "";
+    document.getElementById("answerText")
+        .textContent = "?";
 
-    updateQuestionNumber();
+    document.getElementById("feedbackMessage")
+        .textContent = "";
+
+
+    document.getElementById("questionNumber")
+        .textContent =
+        String(questionIndex + 1)
+            .padStart(2, "0");
+
 
     generateQuestion();
 
     startTimer();
-
-}
-
-
-function updateQuestionNumber() {
-
-    document.getElementById("questionNumber").textContent =
-        String(questionIndex + 1).padStart(2, "0");
 
 }
 
@@ -305,7 +378,7 @@ function generateQuestion() {
     }
 
 
-    if (operation === "-") {
+    else if (operation === "-") {
 
         a = random(5, 30);
         b = random(1, a);
@@ -317,7 +390,7 @@ function generateQuestion() {
     }
 
 
-    if (operation === "*") {
+    else if (operation === "*") {
 
         a = random(1, 20);
         b = random(1, 20);
@@ -329,11 +402,12 @@ function generateQuestion() {
     }
 
 
-    if (operation === "/") {
+    else {
 
         b = random(1, 12);
 
-        correctAnswer = random(1, 12);
+        correctAnswer =
+            random(1, 12);
 
         a = b * correctAnswer;
 
@@ -342,7 +416,8 @@ function generateQuestion() {
     }
 
 
-    document.getElementById("questionText").textContent =
+    document.getElementById("questionText")
+        .textContent =
         `${a} ${symbol} ${b}`;
 
 }
@@ -350,15 +425,19 @@ function generateQuestion() {
 
 function startTimer() {
 
+    clearInterval(timer);
+
     timeLeft = selectedTime;
 
     updateTimerUI();
+
 
     timer = setInterval(() => {
 
         timeLeft--;
 
         updateTimerUI();
+
 
         if (timeLeft <= 0) {
 
@@ -375,17 +454,20 @@ function startTimer() {
 
 function updateTimerUI() {
 
-    document.getElementById("timerText").textContent =
-        timeLeft;
+    document.getElementById("timerText")
+        .textContent =
+        Math.max(0, timeLeft);
 
 
     const offset =
         circumference -
-        (timeLeft / selectedTime) * circumference;
+        (Math.max(0, timeLeft) / selectedTime)
+        * circumference;
 
 
     document.getElementById("timerCircle")
-        .style.strokeDashoffset = offset;
+        .style.strokeDashoffset =
+        offset;
 
 }
 
@@ -398,9 +480,11 @@ function updateCombo() {
 
     if (combo === 0) {
 
-        comboText.textContent = "NO COMBO";
+        comboText.textContent =
+            "NO COMBO";
 
     }
+
 
     else if (combo < 3) {
 
@@ -409,12 +493,14 @@ function updateCombo() {
 
     }
 
+
     else if (combo < 6) {
 
         comboText.textContent =
             `🔥🔥 ${combo} COMBO`;
 
     }
+
 
     else {
 
@@ -427,8 +513,48 @@ function updateCombo() {
 
 
 // ========================================
-// CALCULATION KEYPAD
+// CALCULATION INPUT
 // ========================================
+
+function addCalculationKey(key) {
+
+    if (answerLocked) return;
+
+
+    if (key === "clear") {
+
+        typedAnswer =
+            typedAnswer.slice(0, -1);
+
+    }
+
+
+    else if (key === "submit") {
+
+        if (typedAnswer !== "") {
+
+            handleAnswer(false);
+
+        }
+
+        return;
+
+    }
+
+
+    else if (typedAnswer.length < 5) {
+
+        typedAnswer += key;
+
+    }
+
+
+    document.getElementById("answerText")
+        .textContent =
+        typedAnswer || "?";
+
+}
+
 
 document.querySelectorAll(
     ".calculation-keypad button[data-key]"
@@ -436,56 +562,17 @@ document.querySelectorAll(
 
     button.addEventListener("click", () => {
 
-        const key = button.dataset.key;
-
-
-        if (key === "clear") {
-
-            typedAnswer =
-                typedAnswer.slice(0, -1);
-
-        }
-
-
-        else if (key === "submit") {
-
-            if (typedAnswer !== "") {
-
-                handleAnswer(false);
-
-            }
-
-            return;
-
-        }
-
-
-        else {
-
-            if (typedAnswer.length < 5) {
-
-                typedAnswer += key;
-
-            }
-
-        }
-
-
-        document.getElementById("answerText").textContent =
-            typedAnswer || "?";
+        addCalculationKey(button.dataset.key);
 
     });
 
 });
 
 
-// ========================================
-// CHECK CALCULATION ANSWER
-// ========================================
-
 function handleAnswer(timeout) {
 
     if (answerLocked) return;
+
 
     answerLocked = true;
 
@@ -504,14 +591,18 @@ function handleAnswer(timeout) {
     if (isCorrect) {
 
         correct++;
+
         combo++;
+
 
         feedback.textContent =
             combo >= 3
                 ? `PERFECT! +${10 + combo * 2} XP ⚡`
                 : "CORRECT! ⚡";
 
-        feedback.style.color = "#35e59a";
+
+        feedback.style.color =
+            "#35e59a";
 
     }
 
@@ -519,14 +610,18 @@ function handleAnswer(timeout) {
     else {
 
         wrong++;
+
         combo = 0;
+
 
         feedback.textContent =
             timeout
                 ? `TIME UP! ${correctAnswer}`
                 : `ANSWER: ${correctAnswer}`;
 
-        feedback.style.color = "#ff4d8d";
+
+        feedback.style.color =
+            "#ff4d8d";
 
     }
 
@@ -537,8 +632,6 @@ function handleAnswer(timeout) {
     setTimeout(() => {
 
         questionIndex++;
-
-        answerLocked = false;
 
 
         if (questionIndex >= totalQuestions) {
@@ -611,6 +704,8 @@ function finishCalculationGame() {
 }
 
 
+// Quit calculation
+
 document.getElementById("quitGame")
     .addEventListener("click", () => {
 
@@ -628,32 +723,46 @@ document.getElementById("quitGame")
 let learnType = "";
 let learnNumber = null;
 
+let previewMode = "learn";
+
+let learnQuestionIndex = 0;
+let learnCorrect = 0;
+let learnWrong = 0;
+
+let learnTotalQuestions = 10;
+
+let learnAnswer = "";
+let learnCorrectAnswer = 0;
+
+let learnTimeLeft = 10;
+let learnTimer = null;
+
+let learnLocked = false;
+
+
+// Learn menu
 
 document.querySelectorAll("[data-learn]")
     .forEach(button => {
 
         button.addEventListener("click", () => {
 
-            learnType = button.dataset.learn;
+            learnType =
+                button.dataset.learn;
 
 
-            // ================================
-            // TABLES KEEP THE OLD FLOW
-            // ================================
+            // TABLES:
+            // User selects one table first
 
             if (learnType === "table") {
 
-                const label =
-                    document.getElementById("learnTypeLabel");
-
-                const title =
-                    document.getElementById("learnSelectTitle");
-
-
-                label.textContent =
+                document.getElementById("learnTypeLabel")
+                    .textContent =
                     "TABLE TRAINING";
 
-                title.textContent =
+
+                document.getElementById("learnSelectTitle")
+                    .textContent =
                     "PICK A TABLE";
 
 
@@ -662,13 +771,14 @@ document.querySelectorAll("[data-learn]")
                 showScreen("learnSelectScreen");
 
                 return;
+
             }
 
 
-            // ================================
             // SQUARES AND CUBES:
-            // DIRECTLY SHOW ALL VALUES
-            // ================================
+            // Directly show all values
+
+            previewMode = "learn";
 
             showAllValuesPreview();
 
@@ -677,36 +787,8 @@ document.querySelectorAll("[data-learn]")
     });
 
 
-function createLearnGrid() {
+// Table number grid
 
-    const grid =
-        document.getElementById("numberLevelGrid");
-
-    grid.innerHTML = "";
-
-
-    for (let i = 1; i <= 20; i++) {
-
-        const button =
-            document.createElement("button");
-
-        button.textContent = i;
-
-
-        button.addEventListener("click", () => {
-
-            learnNumber = i;
-
-            showLearningPreview();
-
-        });
-
-
-        grid.appendChild(button);
-
-    }
-
-}
 function createLearnGrid() {
 
     const grid =
@@ -729,6 +811,8 @@ function createLearnGrid() {
 
             learnNumber = i;
 
+            previewMode = "learn";
+
             showLearningPreview();
 
         });
@@ -740,148 +824,8 @@ function createLearnGrid() {
 
 }
 
-// ========================================
-// SHOW ALL SQUARES / CUBES
-// ========================================
 
-function showAllValuesPreview() {
-
-    const previewLabel =
-        document.getElementById("previewLabel");
-
-    const previewTitle =
-        document.getElementById("previewTitle");
-
-    const learningContent =
-        document.getElementById("learningContent");
-
-    const practiceButton =
-        document.getElementById("startPreviewPractice");
-
-
-    // ================================
-    // SQUARES
-    // ================================
-
-    if (learnType === "square") {
-
-        previewLabel.textContent =
-            "LEARN THE SQUARES";
-
-        previewTitle.textContent =
-            "SQUARES 1–20";
-
-        practiceButton.textContent =
-            "PRACTICE SQUARES ⚡";
-
-    }
-
-
-    // ================================
-    // CUBES
-    // ================================
-
-    if (learnType === "cube") {
-
-        previewLabel.textContent =
-            "LEARN THE CUBES";
-
-        previewTitle.textContent =
-            "CUBES 1–20";
-
-        practiceButton.textContent =
-            "PRACTICE CUBES ⚡";
-
-    }
-
-
-    // Clear previous content
-    learningContent.innerHTML = "";
-
-
-    const valuesGrid =
-        document.createElement("div");
-
-    valuesGrid.className =
-        "all-values-grid";
-
-
-    // Create all values from 1 to 20
-    for (let i = 1; i <= 20; i++) {
-
-        const value =
-            learnType === "square"
-                ? i * i
-                : i * i * i;
-
-
-        const power =
-            learnType === "square"
-                ? "²"
-                : "³";
-
-
-        const card =
-            document.createElement("div");
-
-        card.className =
-            "all-value-card";
-
-
-        card.innerHTML = `
-            <span class="value-expression">
-                ${i}${power}
-            </span>
-
-            <span class="value-equals">
-                =
-            </span>
-
-            <strong class="value-answer">
-                ${value}
-            </strong>
-        `;
-
-
-        valuesGrid.appendChild(card);
-
-    }
-
-
-    learningContent.appendChild(valuesGrid);
-
-
-    // Add random challenge message
-    const challengeBox =
-        document.createElement("div");
-
-    challengeBox.className =
-        "random-challenge-box";
-
-
-    challengeBox.innerHTML = `
-
-        <span>🎲</span>
-
-        <div>
-            <strong>RANDOM CHALLENGE</strong>
-
-            <p>
-                Ready to test your memory?
-                Questions will appear randomly from 1 to 20.
-            </p>
-        </div>
-
-    `;
-
-
-    learningContent.appendChild(challengeBox);
-
-
-    showScreen("learningPreviewScreen");
-
-}
-
+// Back to learn home
 
 document.getElementById("backToLearn")
     .onclick = () => {
@@ -891,14 +835,14 @@ document.getElementById("backToLearn")
     };
 
 
-// ========================================
-// RANDOM LEARNING
-// ========================================
+// Random table
 
 document.getElementById("randomLearn")
     .onclick = () => {
 
         learnNumber = random(1, 20);
+
+        previewMode = "learn";
 
         showLearningPreview();
 
@@ -906,7 +850,7 @@ document.getElementById("randomLearn")
 
 
 // ========================================
-// LEARNING PREVIEW
+// TABLE PREVIEW
 // ========================================
 
 function showLearningPreview() {
@@ -924,133 +868,61 @@ function showLearningPreview() {
         document.getElementById("startPreviewPractice");
 
 
+    previewMode = "learn";
+
+
+    previewLabel.textContent =
+        "LEARN THE TABLE";
+
+
+    previewTitle.textContent =
+        `TABLE OF ${learnNumber}`;
+
+
+    practiceButton.textContent =
+        "PRACTICE THIS TABLE ⚡";
+
+
     learningContent.innerHTML = "";
 
 
-    // TABLE PREVIEW
-
-    if (learnType === "table") {
-
-        previewLabel.textContent =
-            "LEARN THE TABLE";
-
-        previewTitle.textContent =
-            `TABLE OF ${learnNumber}`;
-
-        practiceButton.textContent =
-            "PRACTICE THIS TABLE ⚡";
+    const tablePreview =
+        document.createElement("div");
 
 
-        const tablePreview =
+    tablePreview.className =
+        "table-preview";
+
+
+    for (let i = 1; i <= 10; i++) {
+
+        const row =
             document.createElement("div");
 
-        tablePreview.className =
-            "table-preview";
+
+        row.className =
+            "table-row";
 
 
-        // IMPORTANT:
-        // ONLY 1 TO 10
+        row.innerHTML = `
 
-        for (let i = 1; i <= 10; i++) {
+            <span>${learnNumber} × ${i}</span>
 
-            const row =
-                document.createElement("div");
+            <span>=</span>
 
-            row.className =
-                "table-row";
-
-
-            row.innerHTML = `
-                <span>${learnNumber} × ${i}</span>
-                <span>=</span>
-                <span class="table-answer">
-                    ${learnNumber * i}
-                </span>
-            `;
-
-
-            tablePreview.appendChild(row);
-
-        }
-
-
-        learningContent.appendChild(tablePreview);
-
-    }
-
-
-    // SQUARE PREVIEW
-
-    if (learnType === "square") {
-
-        previewLabel.textContent =
-            "LEARN THE SQUARE";
-
-        previewTitle.textContent =
-            `${learnNumber} SQUARED`;
-
-        practiceButton.textContent =
-            "PRACTICE SQUARES ⚡";
-
-
-        learningContent.innerHTML = `
-
-            <div class="single-value-preview">
-
-                <div class="preview-expression">
-                    ${learnNumber}²
-                </div>
-
-                <div class="preview-answer">
-                    ${learnNumber * learnNumber}
-                </div>
-
-                <p class="preview-message">
-                    Remember this value and test yourself.
-                </p>
-
-            </div>
+            <span class="table-answer">
+                ${learnNumber * i}
+            </span>
 
         `;
 
-    }
 
-
-    // CUBE PREVIEW
-
-    if (learnType === "cube") {
-
-        previewLabel.textContent =
-            "LEARN THE CUBE";
-
-        previewTitle.textContent =
-            `${learnNumber} CUBED`;
-
-        practiceButton.textContent =
-            "PRACTICE CUBES ⚡";
-
-
-        learningContent.innerHTML = `
-
-            <div class="single-value-preview">
-
-                <div class="preview-expression">
-                    ${learnNumber}³
-                </div>
-
-                <div class="preview-answer">
-                    ${learnNumber * learnNumber * learnNumber}
-                </div>
-
-                <p class="preview-message">
-                    Remember this value and test yourself.
-                </p>
-
-            </div>
-
-        `;
+        tablePreview.appendChild(row);
 
     }
+
+
+    learningContent.appendChild(tablePreview);
 
 
     showScreen("learningPreviewScreen");
@@ -1058,22 +930,180 @@ function showLearningPreview() {
 }
 
 
-// BACK FROM PREVIEW
+// ========================================
+// ALL SQUARES / CUBES PREVIEW
+// ========================================
+
+function showAllValuesPreview() {
+
+    const previewLabel =
+        document.getElementById("previewLabel");
+
+    const previewTitle =
+        document.getElementById("previewTitle");
+
+    const learningContent =
+        document.getElementById("learningContent");
+
+    const practiceButton =
+        document.getElementById("startPreviewPractice");
+
+
+    previewMode = "learn";
+
+
+    learningContent.innerHTML = "";
+
+
+    if (learnType === "square") {
+
+        previewLabel.textContent =
+            "LEARN THE SQUARES";
+
+        previewTitle.textContent =
+            "SQUARES 1–20";
+
+        practiceButton.textContent =
+            "PRACTICE SQUARES ⚡";
+
+    }
+
+
+    else {
+
+        previewLabel.textContent =
+            "LEARN THE CUBES";
+
+        previewTitle.textContent =
+            "CUBES 1–20";
+
+        practiceButton.textContent =
+            "PRACTICE CUBES ⚡";
+
+    }
+
+
+    const valuesGrid =
+        document.createElement("div");
+
+
+    valuesGrid.className =
+        "all-values-grid";
+
+
+    const power =
+        learnType === "square"
+            ? "²"
+            : "³";
+
+
+    for (let i = 1; i <= 20; i++) {
+
+        const value =
+            learnType === "square"
+                ? i * i
+                : i * i * i;
+
+
+        const card =
+            document.createElement("div");
+
+
+        card.className =
+            "all-value-card";
+
+
+        card.innerHTML = `
+
+            <span class="value-expression">
+                ${i}${power}
+            </span>
+
+            <span class="value-equals">
+                =
+            </span>
+
+            <strong class="value-answer">
+                ${value}
+            </strong>
+
+        `;
+
+
+        valuesGrid.appendChild(card);
+
+    }
+
+
+    learningContent.appendChild(valuesGrid);
+
+
+    const challengeBox =
+        document.createElement("div");
+
+
+    challengeBox.className =
+        "random-challenge-box";
+
+
+    challengeBox.innerHTML = `
+
+        <span>🎲</span>
+
+        <div>
+
+            <strong>RANDOM CHALLENGE</strong>
+
+            <p>
+                Ready to test your memory?
+                Questions will appear randomly from 1 to 20.
+            </p>
+
+        </div>
+
+    `;
+
+
+    learningContent.appendChild(challengeBox);
+
+
+    showScreen("learningPreviewScreen");
+
+}
+
+
+// ========================================
+// PREVIEW BACK BUTTON
+// ========================================
 
 document.getElementById("backToNumberSelect")
     .onclick = () => {
 
-        showScreen("learnSelectScreen");
+        if (learnType === "table") {
+
+            showScreen("learnSelectScreen");
+
+        }
+
+        else {
+
+            showScreen("learnScreen");
+
+        }
 
     };
 
 
-// START PRACTICE FROM PREVIEW
+// ========================================
+// PRACTICE BUTTON
+// ========================================
 
 document.getElementById("startPreviewPractice")
     .onclick = () => {
 
-        // Tables keep 10 questions
+
+        // Tables always use 10 questions
+
         if (learnType === "table") {
 
             learnTotalQuestions = 10;
@@ -1085,20 +1115,21 @@ document.getElementById("startPreviewPractice")
         }
 
 
-        // Squares and Cubes:
-        // Ask how many questions the user wants
+        // Squares and Cubes choose 10 / 20
+
         showQuestionCountChoice();
 
     };
 
-    // ========================================
-// CHOOSE QUESTION COUNT
+
+// ========================================
+// QUESTION COUNT CHOICE
 // ========================================
 
 function showQuestionCountChoice() {
 
-    const learningContent =
-        document.getElementById("learningContent");
+    previewMode = "questionChoice";
+
 
     const previewLabel =
         document.getElementById("previewLabel");
@@ -1106,12 +1137,23 @@ function showQuestionCountChoice() {
     const previewTitle =
         document.getElementById("previewTitle");
 
+    const learningContent =
+        document.getElementById("learningContent");
+
+    const practiceButton =
+        document.getElementById("startPreviewPractice");
+
 
     previewLabel.textContent =
         "RANDOM CHALLENGE";
 
+
     previewTitle.textContent =
         "CHOOSE YOUR ROUND";
+
+
+    practiceButton.style.display =
+        "none";
 
 
     learningContent.innerHTML = `
@@ -1125,27 +1167,29 @@ function showQuestionCountChoice() {
 
             <button
                 class="question-choice-btn"
-                data-question-count="10"
-            >
+                data-question-count="10">
+
                 <span>⚡</span>
 
                 <div>
                     <strong>10 QUESTIONS</strong>
                     <small>Quick challenge</small>
                 </div>
+
             </button>
 
 
             <button
                 class="question-choice-btn"
-                data-question-count="20"
-            >
+                data-question-count="20">
+
                 <span>🔥</span>
 
                 <div>
                     <strong>20 QUESTIONS</strong>
                     <small>Full memory test</small>
                 </div>
+
             </button>
 
         </div>
@@ -1165,6 +1209,10 @@ function showQuestionCountChoice() {
                     );
 
 
+                practiceButton.style.display =
+                    "block";
+
+
                 startLearnGame();
 
             });
@@ -1178,36 +1226,27 @@ function showQuestionCountChoice() {
 
 
 // ========================================
-// LEARN PRACTICE GAME
+// LEARN GAME
 // ========================================
 
-let learnQuestionIndex = 0;
-let learnCorrect = 0;
-let learnWrong = 0;
-
-let learnTotalQuestions = 10;
-
-let learnAnswer = "";
-let learnCorrectAnswer = 0;
-
-let learnTimeLeft = 10;
-let learnTimer;
-
-let learnLocked = false;
-
-
 function startLearnGame() {
+
+    clearInterval(learnTimer);
+
 
     learnQuestionIndex = 0;
 
     learnCorrect = 0;
     learnWrong = 0;
 
+    learnAnswer = "";
+
     learnLocked = false;
 
 
     document.getElementById("learnTotalQuestions")
-        .textContent = learnTotalQuestions;
+        .textContent =
+        learnTotalQuestions;
 
 
     showScreen("learnGameScreen");
@@ -1221,17 +1260,20 @@ function nextLearnQuestion() {
 
     clearInterval(learnTimer);
 
+
     learnAnswer = "";
 
     learnLocked = false;
 
 
     document.getElementById("learnAnswerText")
-        .textContent = "?";
+        .textContent =
+        "?";
 
 
     document.getElementById("learnFeedbackMessage")
-        .textContent = "";
+        .textContent =
+        "";
 
 
     document.getElementById("learnQuestionNumber")
@@ -1254,10 +1296,8 @@ function nextLearnQuestion() {
 function generateLearnQuestion() {
 
 
-    // ================================
-    // TABLES
+    // TABLE:
     // Selected table × 1 to 10
-    // ================================
 
     if (learnType === "table") {
 
@@ -1279,9 +1319,7 @@ function generateLearnQuestion() {
     }
 
 
-    // ================================
     // RANDOM SQUARE
-    // ================================
 
     if (learnType === "square") {
 
@@ -1303,9 +1341,7 @@ function generateLearnQuestion() {
     }
 
 
-    // ================================
     // RANDOM CUBE
-    // ================================
 
     if (learnType === "cube") {
 
@@ -1331,6 +1367,9 @@ function generateLearnQuestion() {
 // ========================================
 
 function startLearnTimer() {
+
+    clearInterval(learnTimer);
+
 
     learnTimeLeft = 10;
 
@@ -1361,12 +1400,13 @@ function updateLearnTimer() {
 
     document.getElementById("learnTimerText")
         .textContent =
-        learnTimeLeft;
+        Math.max(0, learnTimeLeft);
 
 
     const offset =
         circumference -
-        (learnTimeLeft / 10) * circumference;
+        (Math.max(0, learnTimeLeft) / 10)
+        * circumference;
 
 
     document.getElementById("learnTimerCircle")
@@ -1377,8 +1417,48 @@ function updateLearnTimer() {
 
 
 // ========================================
-// LEARN KEYPAD
+// LEARN INPUT
 // ========================================
+
+function addLearnKey(key) {
+
+    if (learnLocked) return;
+
+
+    if (key === "clear") {
+
+        learnAnswer =
+            learnAnswer.slice(0, -1);
+
+    }
+
+
+    else if (key === "submit") {
+
+        if (learnAnswer !== "") {
+
+            handleLearnAnswer(false);
+
+        }
+
+        return;
+
+    }
+
+
+    else if (learnAnswer.length < 5) {
+
+        learnAnswer += key;
+
+    }
+
+
+    document.getElementById("learnAnswerText")
+        .textContent =
+        learnAnswer || "?";
+
+}
+
 
 document.querySelectorAll(
     ".learn-keypad button[data-learn-key]"
@@ -1386,45 +1466,9 @@ document.querySelectorAll(
 
     button.addEventListener("click", () => {
 
-        const key =
-            button.dataset.learnKey;
-
-
-        if (key === "clear") {
-
-            learnAnswer =
-                learnAnswer.slice(0, -1);
-
-        }
-
-
-        else if (key === "submit") {
-
-            if (learnAnswer !== "") {
-
-                handleLearnAnswer(false);
-
-            }
-
-            return;
-
-        }
-
-
-        else {
-
-            if (learnAnswer.length < 5) {
-
-                learnAnswer += key;
-
-            }
-
-        }
-
-
-        document.getElementById("learnAnswerText")
-            .textContent =
-            learnAnswer || "?";
+        addLearnKey(
+            button.dataset.learnKey
+        );
 
     });
 
@@ -1438,6 +1482,7 @@ document.querySelectorAll(
 function handleLearnAnswer(timeout) {
 
     if (learnLocked) return;
+
 
     learnLocked = true;
 
@@ -1459,8 +1504,10 @@ function handleLearnAnswer(timeout) {
 
         learnCorrect++;
 
+
         feedback.textContent =
             "MEMORISED! 🧠⚡";
+
 
         feedback.style.color =
             "#35e59a";
@@ -1489,10 +1536,11 @@ function handleLearnAnswer(timeout) {
 
         learnQuestionIndex++;
 
-        learnLocked = false;
 
-
-        if (learnQuestionIndex >= learnTotalQuestions) {
+        if (
+            learnQuestionIndex >=
+            learnTotalQuestions
+        ) {
 
             finishLearnGame();
 
@@ -1516,7 +1564,8 @@ function finishLearnGame() {
 
     const accuracy =
         Math.round(
-            (learnCorrect / 10) * 100
+            (learnCorrect / learnTotalQuestions)
+            * 100
         );
 
 
@@ -1538,7 +1587,13 @@ function finishLearnGame() {
     }
 
 
-    if (learnCorrect >= 7) {
+    const requiredCorrect =
+        Math.ceil(
+            learnTotalQuestions * 0.7
+        );
+
+
+    if (learnCorrect >= requiredCorrect) {
 
         streak++;
 
@@ -1560,14 +1615,25 @@ function finishLearnGame() {
 }
 
 
-// QUIT LEARN PRACTICE
+// Quit learn game
 
 document.getElementById("quitLearnGame")
     .onclick = () => {
 
         clearInterval(learnTimer);
 
-        showLearningPreview();
+
+        if (learnType === "table") {
+
+            showLearningPreview();
+
+        }
+
+        else {
+
+            showAllValuesPreview();
+
+        }
 
     };
 
@@ -1592,23 +1658,28 @@ function showResult(
 
 
     document.getElementById("finalScore")
-        .textContent = score;
+        .textContent =
+        score;
 
 
     document.getElementById("finalCorrect")
-        .textContent = correctAnswers;
+        .textContent =
+        correctAnswers;
 
 
     document.getElementById("finalWrong")
-        .textContent = wrongAnswers;
+        .textContent =
+        wrongAnswers;
 
 
     document.getElementById("finalAccuracy")
-        .textContent = `${accuracy}%`;
+        .textContent =
+        `${accuracy}%`;
 
 
     document.getElementById("earnedXP")
-        .textContent = earned;
+        .textContent =
+        earned;
 
 
     const emoji =
@@ -1649,7 +1720,8 @@ function showResult(
 
         emoji.textContent = "⚡";
 
-        heading.textContent = "KEEP RUSHING!";
+        heading.textContent =
+            "KEEP RUSHING!";
 
         message.textContent =
             "Speed comes with practice.";
@@ -1675,7 +1747,7 @@ function showResult(
 }
 
 
-// PLAY AGAIN
+// Play again
 
 document.getElementById("playAgain")
     .addEventListener("click", () => {
@@ -1695,7 +1767,7 @@ document.getElementById("playAgain")
     });
 
 
-// BACK HOME
+// Back home
 
 document.getElementById("goResultHome")
     .addEventListener("click", () => {
@@ -1705,117 +1777,96 @@ document.getElementById("goResultHome")
     });
 
 
-updateStats();
-
 // ========================================
-// LAPTOP / PHYSICAL KEYBOARD SUPPORT
+// LAPTOP KEYBOARD SUPPORT
 // ========================================
 
-document.addEventListener("keydown", (event) => {
+document.addEventListener("keydown", event => {
 
-    // Don't do anything if result screen is open
-    if (document.getElementById("resultScreen").classList.contains("active")) {
+
+    // Calculation game
+
+    if (
+        document
+            .getElementById("gameScreen")
+            .classList
+            .contains("active")
+    ) {
+
+        if (/^[0-9]$/.test(event.key)) {
+
+            event.preventDefault();
+
+            addCalculationKey(event.key);
+
+        }
+
+
+        else if (event.key === "Backspace") {
+
+            event.preventDefault();
+
+            addCalculationKey("clear");
+
+        }
+
+
+        else if (event.key === "Enter") {
+
+            event.preventDefault();
+
+            addCalculationKey("submit");
+
+        }
+
+
         return;
-    }
-
-
-    // ========================================
-    // CALCULATION GAME KEYBOARD
-    // ========================================
-
-    if (document.getElementById("gameScreen").classList.contains("active")) {
-
-        // Numbers 0 to 9
-        if (/^[0-9]$/.test(event.key)) {
-
-            if (typedAnswer.length < 5 && !answerLocked) {
-
-                typedAnswer += event.key;
-
-                document.getElementById("answerText").textContent =
-                    typedAnswer;
-
-            }
-
-        }
-
-
-        // Backspace
-        else if (event.key === "Backspace") {
-
-            if (!answerLocked) {
-
-                typedAnswer = typedAnswer.slice(0, -1);
-
-                document.getElementById("answerText").textContent =
-                    typedAnswer || "?";
-
-            }
-
-        }
-
-
-        // Enter = Submit
-        else if (event.key === "Enter") {
-
-            if (typedAnswer !== "" && !answerLocked) {
-
-                handleAnswer(false);
-
-            }
-
-        }
 
     }
 
 
-    // ========================================
-    // TABLE / SQUARE / CUBE PRACTICE KEYBOARD
-    // ========================================
+    // Learn game
 
-    if (document.getElementById("learnGameScreen").classList.contains("active")) {
+    if (
+        document
+            .getElementById("learnGameScreen")
+            .classList
+            .contains("active")
+    ) {
 
-        // Numbers 0 to 9
         if (/^[0-9]$/.test(event.key)) {
 
-            if (learnAnswer.length < 5 && !learnLocked) {
+            event.preventDefault();
 
-                learnAnswer += event.key;
-
-                document.getElementById("learnAnswerText").textContent =
-                    learnAnswer;
-
-            }
+            addLearnKey(event.key);
 
         }
 
 
-        // Backspace
         else if (event.key === "Backspace") {
 
-            if (!learnLocked) {
+            event.preventDefault();
 
-                learnAnswer = learnAnswer.slice(0, -1);
-
-                document.getElementById("learnAnswerText").textContent =
-                    learnAnswer || "?";
-
-            }
+            addLearnKey("clear");
 
         }
 
 
-        // Enter = Submit
         else if (event.key === "Enter") {
 
-            if (learnAnswer !== "" && !learnLocked) {
+            event.preventDefault();
 
-                handleLearnAnswer(false);
-
-            }
+            addLearnKey("submit");
 
         }
 
     }
 
 });
+
+
+// ========================================
+// INITIALIZE
+// ========================================
+
+updateStats();
