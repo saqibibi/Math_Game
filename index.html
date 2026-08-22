@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Math Rush</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <div class="app-shell">
+
+        <div class="bg-glow glow-1"></div>
+        <div class="bg-glow glow-2"></div>
+
+
+        <!-- ================= HOME ================= -->
+
+        <section class="screen active" id="homeScreen">
+
+            <div class="top-bar">
+
+                <div class="logo">
+                    <span class="logo-icon">⚡</span>
+                    <span>MATH<span>RUSH</span></span>
+                </div>
+
+                <div class="level-badge">
+                    LVL <strong id="levelNumber">1</strong>
+                </div>
+
+            </div>
+
+
+            <div class="xp-wrap">
+
+                <div class="xp-info">
+                    <span>XP</span>
+                    <span id="xpText">0 / 100</span>
+                </div>
+
+                <div class="xp-bar">
+                    <div class="xp-fill" id="xpFill"></div>
+                </div>
+
+            </div>
+
+
+            <div class="hero-section">
+
+                <p class="tiny-label">YOUR DAILY MISSION</p>
+
+                <h1>
+                    GET<br>
+                    FASTER. <span>⚡</span>
+                </h1>
+
+                <p class="hero-text">
+                    Train your brain. Beat your score.
+                </p>
+
+            </div>
+
+
+            <div class="stats-row">
+
+                <div class="stat-box">
+                    <span>🔥</span>
+                    <strong id="streakDisplay">0</strong>
+                    <small>STREAK</small>
+                </div>
+
+                <div class="stat-box">
+                    <span>🎯</span>
+                    <strong id="bestScore">0</strong>
+                    <small>BEST</small>
+                </div>
+
+                <div class="stat-box">
+                    <span>⭐</span>
+                    <strong id="totalXP">0</strong>
+                    <small>TOTAL XP</small>
+                </div>
+
+            </div>
+
+
+            <button class="quick-play" id="quickPlay">
+
+                <div class="play-icon">▶</div>
+
+                <div>
+                    <small>READY?</small>
+                    <strong>QUICK PLAY</strong>
+                </div>
+
+                <span class="play-arrow">→</span>
+
+            </button>
+
+
+            <div class="section-heading">
+                <span>CHOOSE YOUR TRAINING</span>
+            </div>
+
+
+            <div class="training-grid">
+
+                <button class="training-card purple-card" id="goPractice">
+
+                    <span class="training-icon">🧮</span>
+
+                    <strong>CALCULATE</strong>
+                    <small>Speed training</small>
+
+                </button>
+
+
+                <button class="training-card orange-card" id="goLearn">
+
+                    <span class="training-icon">📚</span>
+
+                    <strong>LEARN</strong>
+                    <small>Tables & More</small>
+
+                </button>
+
+            </div>
+
+        </section>
+
+
+        <!-- ================= MODE SELECT ================= -->
+
+        <section class="screen" id="modeScreen">
+
+            <button class="back-btn" data-back="homeScreen">←</button>
+
+            <div class="screen-title">
+                <p>CHOOSE YOUR</p>
+                <h1>CHALLENGE</h1>
+            </div>
+
+
+            <div class="mode-list">
+
+                <button class="game-mode active-mode" data-mode="addition">
+
+                    <span class="mode-symbol">+</span>
+
+                    <div>
+                        <strong>ADDITION</strong>
+                        <small>Add numbers fast</small>
+                    </div>
+
+                    <span class="mode-select">✓</span>
+
+                </button>
+
+
+                <button class="game-mode" data-mode="subtraction">
+
+                    <span class="mode-symbol pink">−</span>
+
+                    <div>
+                        <strong>SUBTRACTION</strong>
+                        <small>Quick mental maths</small>
+                    </div>
+
+                    <span class="mode-select"></span>
+
+                </button>
+
+
+                <button class="game-mode" data-mode="multiplication">
+
+                    <span class="mode-symbol blue">×</span>
+
+                    <div>
+                        <strong>MULTIPLICATION</strong>
+                        <small>Tables & speed</small>
+                    </div>
+
+                    <span class="mode-select"></span>
+
+                </button>
+
+
+                <button class="game-mode" data-mode="division">
+
+                    <span class="mode-symbol orange">÷</span>
+
+                    <div>
+                        <strong>DIVISION</strong>
+                        <small>Divide quickly</small>
+                    </div>
+
+                    <span class="mode-select"></span>
+
+                </button>
+
+
+                <button class="game-mode" data-mode="mixedBasic">
+
+                    <span class="mode-symbol green">±</span>
+
+                    <div>
+                        <strong>MIXED BASIC</strong>
+                        <small>Addition + Subtraction</small>
+                    </div>
+
+                    <span class="mode-select"></span>
+
+                </button>
+
+
+                <button class="game-mode" data-mode="mixedIntermediate">
+
+                    <span class="mode-symbol yellow">⚡</span>
+
+                    <div>
+                        <strong>MIXED INTERMEDIATE</strong>
+                        <small>+ − ×</small>
+                    </div>
+
+                    <span class="mode-select"></span>
+
+                </button>
+
+
+                <button class="game-mode" data-mode="mixedAll">
+
+                    <span class="mode-symbol rainbow">★</span>
+
+                    <div>
+                        <strong>MIXED ALL</strong>
+                        <small>+ − × ÷</small>
+                    </div>
+
+                    <span class="mode-select"></span>
+
+                </button>
+
+            </div>
+
+
+            <div class="setting-panel">
+
+                <div class="setting-heading">
+                    <span>⏱ TIME LIMIT</span>
+                    <strong id="timeDisplay">7 SEC</strong>
+                </div>
+
+
+                <div class="time-buttons">
+
+                    <button data-time="3">3</button>
+                    <button data-time="5">5</button>
+                    <button class="selected-time" data-time="7">7</button>
+                    <button data-time="10">10</button>
+                    <button data-time="15">15</button>
+
+                </div>
+
+            </div>
+
+
+            <button class="start-game-btn" id="startGame">
+                START CHALLENGE <span>⚡</span>
+            </button>
+
+        </section>
+
+
+        <!-- ================= CALCULATION GAME ================= -->
+
+        <section class="screen game-screen" id="gameScreen">
+
+            <div class="game-header">
+
+                <button class="quit-btn" id="quitGame">✕</button>
+
+
+                <div class="question-count">
+                    <span id="learnQuestionNumber">01</span>
+                    <small>/ <span id="learnTotalQuestions">10</span></small>
+                </div>
+
+
+                <div class="timer-orb">
+
+                    <svg viewBox="0 0 100 100">
+
+                        <circle class="timer-bg" cx="50" cy="50" r="42">
+                        </circle>
+
+                        <circle class="timer-progress" id="timerCircle" cx="50" cy="50" r="42">
+                        </circle>
+
+                    </svg>
+
+                    <strong id="timerText">7</strong>
+
+                </div>
+
+            </div>
+
+
+            <div class="combo-area">
+
+                <span>🔥</span>
+
+                <strong id="comboText">
+                    NO COMBO
+                </strong>
+
+            </div>
+
+
+            <div class="question-area">
+
+                <p class="question-label">
+                    SOLVE IT FAST
+                </p>
+
+                <h1 id="questionText">
+                    17 + 19
+                </h1>
+
+            </div>
+
+
+            <div class="answer-display">
+                <span id="answerText">?</span>
+            </div>
+
+
+            <p class="feedback-message" id="feedbackMessage"></p>
+
+
+            <div class="keypad calculation-keypad">
+
+                <button data-key="1">1</button>
+                <button data-key="2">2</button>
+                <button data-key="3">3</button>
+
+                <button data-key="4">4</button>
+                <button data-key="5">5</button>
+                <button data-key="6">6</button>
+
+                <button data-key="7">7</button>
+                <button data-key="8">8</button>
+                <button data-key="9">9</button>
+
+                <button class="clear-key" data-key="clear">⌫</button>
+                <button data-key="0">0</button>
+                <button class="submit-key" data-key="submit">✓</button>
+
+            </div>
+
+        </section>
+
+
+        <!-- ================= LEARN HOME ================= -->
+
+        <section class="screen" id="learnScreen">
+
+            <button class="back-btn" data-back="homeScreen">←</button>
+
+
+            <div class="screen-title">
+
+                <p>MEMORY</p>
+                <h1>TRAINING</h1>
+
+            </div>
+
+
+            <button class="learn-game-card table-game" data-learn="table">
+
+                <span class="learn-big-icon">×</span>
+
+                <div>
+                    <small>LEARN YOUR</small>
+                    <strong>TABLES</strong>
+                    <p>From 1 to 20</p>
+                </div>
+
+                <span class="card-arrow">→</span>
+
+            </button>
+
+
+            <button class="learn-game-card square-game" data-learn="square">
+
+                <span class="learn-big-icon">²</span>
+
+                <div>
+                    <small>MASTER YOUR</small>
+                    <strong>SQUARES</strong>
+                    <p>From 1² to 20²</p>
+                </div>
+
+                <span class="card-arrow">→</span>
+
+            </button>
+
+
+            <button class="learn-game-card cube-game" data-learn="cube">
+
+                <span class="learn-big-icon">³</span>
+
+                <div>
+                    <small>UNLOCK YOUR</small>
+                    <strong>CUBES</strong>
+                    <p>From 1³ to 20³</p>
+                </div>
+
+                <span class="card-arrow">→</span>
+
+            </button>
+
+        </section>
+
+
+        <!-- ================= NUMBER SELECT ================= -->
+
+        <section class="screen" id="learnSelectScreen">
+
+            <button class="back-btn" id="backToLearn">←</button>
+
+
+            <div class="screen-title">
+
+                <p id="learnTypeLabel">
+                    TABLE TRAINING
+                </p>
+
+                <h1 id="learnSelectTitle">
+                    PICK A TABLE
+                </h1>
+
+            </div>
+
+
+            <div class="number-level-grid" id="numberLevelGrid"></div>
+
+
+            <button class="random-level-btn" id="randomLearn">
+                🎲 RANDOM CHALLENGE
+            </button>
+
+        </section>
+
+
+        <!-- ================= LEARNING PREVIEW ================= -->
+
+        <section class="screen" id="learningPreviewScreen">
+
+            <button class="back-btn" id="backToNumberSelect">
+                ←
+            </button>
+
+
+            <div class="screen-title preview-title">
+
+                <p id="previewLabel">
+                    LEARN FIRST
+                </p>
+
+                <h1 id="previewTitle">
+                    TABLE OF 14
+                </h1>
+
+            </div>
+
+
+            <div class="learning-card" id="learningCard">
+
+                <div id="learningContent"></div>
+
+            </div>
+
+
+            <button class="preview-practice-btn" id="startPreviewPractice">
+                PRACTICE NOW ⚡
+            </button>
+
+        </section>
+
+
+        <!-- ================= LEARN PRACTICE ================= -->
+
+        <section class="screen game-screen" id="learnGameScreen">
+
+            <div class="game-header">
+
+                <button class="quit-btn" id="quitLearnGame">✕</button>
+
+
+                <div class="question-count">
+
+                    <span id="learnQuestionNumber">01</span>
+
+                    <small>/ 10</small>
+
+                </div>
+
+
+                <div class="timer-orb">
+
+                    <svg viewBox="0 0 100 100">
+
+                        <circle class="timer-bg" cx="50" cy="50" r="42">
+                        </circle>
+
+                        <circle class="timer-progress" id="learnTimerCircle" cx="50" cy="50" r="42">
+                        </circle>
+
+                    </svg>
+
+                    <strong id="learnTimerText">10</strong>
+
+                </div>
+
+            </div>
+
+
+            <div class="combo-area">
+
+                <span>🧠</span>
+
+                <strong id="learnComboText">
+                    MEMORY MODE
+                </strong>
+
+            </div>
+
+
+            <div class="question-area">
+
+                <p class="question-label">
+                    QUICK RECALL
+                </p>
+
+                <h1 id="learnQuestionText">
+                    14 × 7
+                </h1>
+
+            </div>
+
+
+            <div class="answer-display">
+                <span id="learnAnswerText">?</span>
+            </div>
+
+
+            <p class="feedback-message" id="learnFeedbackMessage">
+            </p>
+
+
+            <div class="keypad learn-keypad">
+
+                <button data-learn-key="1">1</button>
+                <button data-learn-key="2">2</button>
+                <button data-learn-key="3">3</button>
+
+                <button data-learn-key="4">4</button>
+                <button data-learn-key="5">5</button>
+                <button data-learn-key="6">6</button>
+
+                <button data-learn-key="7">7</button>
+                <button data-learn-key="8">8</button>
+                <button data-learn-key="9">9</button>
+
+                <button class="clear-key" data-learn-key="clear">
+                    ⌫
+                </button>
+
+                <button data-learn-key="0">0</button>
+
+                <button class="submit-key" data-learn-key="submit">
+                    ✓
+                </button>
+
+            </div>
+
+        </section>
+
+
+        <!-- ================= RESULT ================= -->
+
+        <section class="screen result-screen" id="resultScreen">
+
+            <div class="result-rings">
+
+                <div class="ring ring-1"></div>
+                <div class="ring ring-2"></div>
+
+                <div class="result-emoji" id="resultEmoji">
+                    🏆
+                </div>
+
+            </div>
+
+
+            <p class="result-label">
+                SESSION COMPLETE
+            </p>
+
+            <h1 id="resultHeading">
+                YOU'RE FAST!
+            </h1>
+
+            <p id="resultMessage">
+                Your brain is getting stronger.
+            </p>
+
+
+            <div class="final-score-card">
+
+                <small>FINAL SCORE</small>
+
+                <strong id="finalScore">0</strong>
+
+                <div class="result-line"></div>
+
+
+                <div class="result-details">
+
+                    <div>
+                        <span>✓</span>
+                        <strong id="finalCorrect">0</strong>
+                        <small>CORRECT</small>
+                    </div>
+
+                    <div>
+                        <span>✕</span>
+                        <strong id="finalWrong">0</strong>
+                        <small>WRONG</small>
+                    </div>
+
+                    <div>
+                        <span>⚡</span>
+                        <strong id="finalAccuracy">0%</strong>
+                        <small>ACCURACY</small>
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="xp-earned">
+                ⭐ +<strong id="earnedXP">0</strong> XP EARNED
+            </div>
+
+
+            <button class="again-btn" id="playAgain">
+                PLAY AGAIN ⚡
+            </button>
+
+
+            <button class="home-result-btn" id="goResultHome">
+                BACK TO HOME
+            </button>
+
+        </section>
+
+
+        <!-- ================= BOTTOM NAV ================= -->
+
+        <nav class="bottom-nav">
+
+            <button class="bottom-item active-nav" data-nav="homeScreen">
+
+                <span>⌂</span>
+                <small>HOME</small>
+
+            </button>
+
+
+            <button class="bottom-item" data-nav="modeScreen">
+
+                <span>⚡</span>
+                <small>PLAY</small>
+
+            </button>
+
+
+            <button class="bottom-item" data-nav="learnScreen">
+
+                <span>📚</span>
+                <small>LEARN</small>
+
+            </button>
+
+        </nav>
+
+    </div>
+
+
+    <script src="script.js"></script>
+
+</body>
+
+</html>
