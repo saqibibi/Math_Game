@@ -7,6 +7,44 @@ const navButtons = document.querySelectorAll(".bottom-item");
 
 let currentScreen = "homeScreen";
 
+// ========================================
+// ANSWER TIME TRACKING
+// ========================================
+
+let questionStartTime = null;
+let totalAnswerTime = 0;
+let answeredQuestions = 0;
+
+function resetAnswerTracking() {
+    questionStartTime = null;
+    totalAnswerTime = 0;
+    answeredQuestions = 0;
+}
+
+function startAnswerTracking() {
+    questionStartTime = Date.now();
+}
+
+function recordAnswerTime() {
+    if (questionStartTime === null) return;
+
+    const answerTime =
+        (Date.now() - questionStartTime) / 1000;
+
+    totalAnswerTime += answerTime;
+    answeredQuestions++;
+
+    questionStartTime = null;
+}
+
+function getAverageAnswerTime() {
+    if (answeredQuestions === 0) return "0.00";
+
+    return (
+        totalAnswerTime / answeredQuestions
+    ).toFixed(2);
+}
+
 
 function showScreen(id, addToHistory = true) {
 
@@ -31,7 +69,6 @@ function showScreen(id, addToHistory = true) {
             "active-nav",
             button.dataset.nav === id
         );
-
     });
 
 
@@ -48,7 +85,6 @@ function showScreen(id, addToHistory = true) {
                 "",
                 "#" + id
             );
-
         }
 
     }
@@ -300,6 +336,8 @@ function startGame() {
 
     clearInterval(timer);
 
+    resetAnswerTracking();
+
 
     questionIndex = 0;
     correct = 0;
@@ -351,6 +389,8 @@ function nextQuestion() {
 
 
     generateQuestion();
+
+    startAnswerTracking();
 
     startTimer();
 
@@ -579,6 +619,21 @@ function handleAnswer(timeout) {
     clearInterval(timer);
 
 
+    // Count time only when user actually submits an answer.
+    // Timeout questions are not included in average answer time.
+    if (!timeout && typedAnswer !== "") {
+
+        recordAnswerTime();
+
+    }
+
+    else {
+
+        questionStartTime = null;
+
+    }
+
+
     const isCorrect =
         !timeout &&
         Number(typedAnswer) === correctAnswer;
@@ -591,7 +646,6 @@ function handleAnswer(timeout) {
     if (isCorrect) {
 
         correct++;
-
         combo++;
 
 
@@ -610,7 +664,6 @@ function handleAnswer(timeout) {
     else {
 
         wrong++;
-
         combo = 0;
 
 
@@ -654,6 +707,8 @@ function handleAnswer(timeout) {
 function finishCalculationGame() {
 
     clearInterval(timer);
+
+    questionStartTime = null;
 
 
     const score =
@@ -711,6 +766,8 @@ document.getElementById("quitGame")
 
         clearInterval(timer);
 
+        questionStartTime = null;
+
         showScreen("modeScreen");
 
     });
@@ -759,7 +816,6 @@ document.querySelectorAll("[data-learn]")
                 document.getElementById("learnTypeLabel")
                     .textContent =
                     "TABLE TRAINING";
-
 
                 document.getElementById("learnSelectTitle")
                     .textContent =
@@ -882,6 +938,9 @@ function showLearningPreview() {
     practiceButton.textContent =
         "PRACTICE THIS TABLE ⚡";
 
+    practiceButton.style.display =
+        "block";
+
 
     learningContent.innerHTML = "";
 
@@ -950,6 +1009,9 @@ function showAllValuesPreview() {
 
 
     previewMode = "learn";
+
+    practiceButton.style.display =
+        "block";
 
 
     learningContent.innerHTML = "";
@@ -1172,8 +1234,11 @@ function showQuestionCountChoice() {
                 <span>⚡</span>
 
                 <div>
+
                     <strong>10 QUESTIONS</strong>
+
                     <small>Quick challenge</small>
+
                 </div>
 
             </button>
@@ -1186,8 +1251,11 @@ function showQuestionCountChoice() {
                 <span>🔥</span>
 
                 <div>
+
                     <strong>20 QUESTIONS</strong>
+
                     <small>Full memory test</small>
+
                 </div>
 
             </button>
@@ -1232,6 +1300,8 @@ function showQuestionCountChoice() {
 function startLearnGame() {
 
     clearInterval(learnTimer);
+
+    resetAnswerTracking();
 
 
     learnQuestionIndex = 0;
@@ -1283,6 +1353,8 @@ function nextLearnQuestion() {
 
 
     generateLearnQuestion();
+
+    startAnswerTracking();
 
     startLearnTimer();
 
@@ -1489,6 +1561,21 @@ function handleLearnAnswer(timeout) {
     clearInterval(learnTimer);
 
 
+    // Count time only when user actually submits an answer.
+    // Timeout questions are excluded from the average.
+    if (!timeout && learnAnswer !== "") {
+
+        recordAnswerTime();
+
+    }
+
+    else {
+
+        questionStartTime = null;
+
+    }
+
+
     const isCorrect =
         !timeout &&
         Number(learnAnswer) === learnCorrectAnswer;
@@ -1561,6 +1648,8 @@ function finishLearnGame() {
 
     clearInterval(learnTimer);
 
+    questionStartTime = null;
+
 
     const accuracy =
         Math.round(
@@ -1622,6 +1711,8 @@ document.getElementById("quitLearnGame")
 
         clearInterval(learnTimer);
 
+        questionStartTime = null;
+
 
         if (learnType === "table") {
 
@@ -1682,6 +1773,32 @@ function showResult(
         earned;
 
 
+    // ========================================
+    // AVERAGE ANSWER TIME
+    // ========================================
+
+    const averageTimeElement =
+        document.getElementById("averageAnswerTime");
+
+    if (averageTimeElement) {
+
+        averageTimeElement.textContent =
+            `${getAverageAnswerTime()}s`;
+
+    }
+
+
+    const answeredQuestionsElement =
+        document.getElementById("answeredQuestionsCount");
+
+    if (answeredQuestionsElement) {
+
+        answeredQuestionsElement.textContent =
+            answeredQuestions;
+
+    }
+
+
     const emoji =
         document.getElementById("resultEmoji");
 
@@ -1699,7 +1816,7 @@ function showResult(
         heading.textContent = "PERFECT!";
 
         message.textContent =
-            "Absolutely unstoppable.";
+            `Absolutely unstoppable. Average speed: ${getAverageAnswerTime()}s per answer.`;
 
     }
 
@@ -1711,7 +1828,7 @@ function showResult(
         heading.textContent = "ON FIRE!";
 
         message.textContent =
-            "That was seriously fast.";
+            `That was seriously fast. Average: ${getAverageAnswerTime()}s per answer.`;
 
     }
 
@@ -1724,7 +1841,7 @@ function showResult(
             "KEEP RUSHING!";
 
         message.textContent =
-            "Speed comes with practice.";
+            `Speed comes with practice. Average: ${getAverageAnswerTime()}s per answer.`;
 
     }
 
@@ -1737,7 +1854,7 @@ function showResult(
             "BRAIN TRAINING!";
 
         message.textContent =
-            "Come back stronger next round.";
+            `Come back stronger next round. Average: ${getAverageAnswerTime()}s per answer.`;
 
     }
 
