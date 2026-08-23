@@ -744,7 +744,7 @@ function finishCalculationGame() {
     }
 
 
-    updateStats();
+    // updateStats();
 
 
     showResult(
@@ -1689,7 +1689,7 @@ function finishLearnGame() {
     }
 
 
-    updateStats();
+    // updateStats();
 
 
     showResult(
@@ -1986,4 +1986,4 @@ document.addEventListener("keydown", event => {
 // INITIALIZE
 // ========================================
 
-updateStats();
+// updateStats();
