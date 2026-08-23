@@ -432,8 +432,8 @@ function generateQuestion() {
 
     else if (operation === "*") {
 
-        a = random(1, 20);
-        b = random(1, 20);
+        a = random(1, 30);
+        b = random(1, 9);
 
         correctAnswer = a * b;
 
